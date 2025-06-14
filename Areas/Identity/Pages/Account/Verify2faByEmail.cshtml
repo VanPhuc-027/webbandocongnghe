@@ -1,0 +1,15 @@
+﻿@page
+@model Verify2faByEmailModel
+@{
+	ViewData["Title"] = "Xác minh 2FA";
+}
+<h2>Xác minh 2 bước qua Email</h2>
+
+<form method="post">
+    <div class="form-group">
+        <label>Mã xác minh:</label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Xác nhận</button>
+</form>

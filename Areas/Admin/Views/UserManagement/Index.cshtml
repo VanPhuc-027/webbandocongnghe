@@ -1,0 +1,38 @@
+﻿@model IEnumerable<_2280613193_webdocongnghe.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Quản lý người dùng</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Trạng thái tài khoản</th>
+            <th>Enable/Disable</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            var isLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.Now;
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.FullName</td>
+                <td>
+                    @(isLocked ? "Disabled" : "Enabled")
+                </td>
+                <td>
+                    <form asp-action="ToggleLock" method="post" asp-route-id="@user.Id">
+                        <button type="submit" class="btn btn-sm @(isLocked ? "btn-success" : "btn-danger")">
+                            @(isLocked ? "Enable" : "Disable")
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

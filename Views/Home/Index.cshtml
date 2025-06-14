@@ -1,0 +1,144 @@
+﻿@model IEnumerable<_2280613193_webdocongnghe.Models.Product>
+@using _2280613193_webdocongnghe.Models
+@{
+    ViewData["Title"] = "Trang Chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int numOfQuantity = 1;
+}
+<section class="py-5 bg-light">
+    <div class="container px-4 px-lg-5">
+        <div class="mb-5">
+            <img src="~/images/banner.jpg" class="img-fluid rounded shadow-sm w-100" alt="Banner">
+        </div>
+        <form method="get" asp-action="Index" class="row g-3 mb-5 justify-content-center">
+            <div class="col-md-4">
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
+            </div>
+            <div class="col-md-3">
+                <select name="priceFilter" class="form-select">
+                    <option value="">-- Lọc theo giá --</option>
+                    <option value="lt5">Dưới 5 triệu</option>
+                    <option value="5to10">Từ 5 - 10 triệu</option>
+                    <option value="gt10">Trên 10 triệu</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+            <select name="category" class="form-select">
+                <option value="all">-- Tất cả danh mục --</option>
+                @foreach (var cat in ViewBag.Categories as List<Category>)
+                {
+                        <option value="@cat.Name" selected="@(ViewBag.SelectedCategory == cat.Name ? "selected" : null)">
+                            @cat.Name
+                        </option>
+                }
+            </select>
+            </div>
+
+            <div class="col-md-3">
+            <select name="brand" class="form-select">
+                <option value="all">-- Tất cả hãng --</option>
+                    @foreach (var brand in ViewBag.Brands as List<Brand>)
+                    {
+                        <option value="@brand.Name" selected="@(ViewBag.SelectedBrand == brand.Name ? "selected" : null)">
+                            @brand.Name
+                        </option>
+                    }
+            </select>
+            </div>
+
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100"><i class="bi bi-search"></i> Tìm</button>
+            </div>
+        </form>
+
+        <h2 class="text-center mb-5 fw-bold text-dark">Sản Phẩm Của Chúng Tôi</h2>
+        <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-3 justify-content-center">
+            @foreach (var item in Model)
+            {
+                <div class="col mb-4">
+                    <div class="card h-100 border-0 shadow-sm overflow-hidden product-card">
+                        <div class="position-relative">
+                            <img src="@item.ImageUrl" class="card-img-top object-fit-cover" alt="@item.Name" style="height: 250px;">
+                            <div class="position-absolute top-0 end-0 p-2">
+                            </div>
+                        </div>
+                        <div class="card-body text-center d-flex flex-column">
+                            <h5 class="card-title fw-semibold text-dark mb-2 text-truncate">
+                                @Html.DisplayFor(modelItem => item.Name)
+                            </h5>
+                            <p class="text-muted mb-3 flex-grow-1">
+                                <strong>@item.Price.ToString("#,##0") Vnđ</strong>
+                            </p>
+                            <div class="d-flex justify-content-center gap-2 mt-auto">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <button class="btn btn-dark add-to-cart-btn" data-product-id="@item.Id" data-quantity="@numOfQuantity">
+                                        <i class="bi bi-cart-fill me-1"></i> Thêm vào Giỏ
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-sm px-4">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i> Thêm vào Giỏ
+                                    </a>
+                                }
+                                <a asp-controller="Home" asp-action="Display"  asp-route-id="@item.Id" class="btn btn-outline-secondary btn-sm px-3">
+                                    Xem Chi Tiết
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const productId = this.getAttribute('data-product-id');
+            const quantity = this.getAttribute('data-quantity');
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            console.log('Token:', token); // Debug token
+
+            fetch('/ShoppingCart/AddToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ productId: parseInt(productId), quantity: parseInt(quantity) })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        const cartBadge = document.querySelector('#cart-count');
+                        if (cartBadge) {
+                            cartBadge.textContent = data.cartCount;
+                            cartBadge.style.display = 'inline';
+                        }
+                        alert('Đã thêm sản phẩm vào giỏ hàng!');
+                    } else {
+                        alert('Lỗi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã xảy ra lỗi khi thêm vào giỏ hàng: ' + error.message);
+                });
+        });
+    });
+</script>
+}

@@ -1,0 +1,63 @@
+﻿@model _2280613193_webdocongnghe.Models.ProductSpecificationViewModel
+@using _2280613193_webdocongnghe.Models
+@{
+    ViewBag.Title = "Thêm thông số cho " + ViewBag.Product.Name;
+    var attributes = ViewBag.SpecAttributes as List<SpecificationAttribute>;
+}
+
+<h2>@ViewBag.Title</h2>
+
+<form asp-action="Create" method="post">
+    <input type="hidden" asp-for="ProductId" />
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Tên thông số</th>
+                <th>Giá trị</th>
+            </tr>
+        </thead>
+        <tbody id="specTable">
+            <tr>
+                <td>
+                    <select name="Specifications[0].SpecificationAttributeId" class="form-control">
+                        @foreach (var attr in attributes)
+                        {
+                            <option value="@attr.Id">@attr.Name</option>
+                        }
+                    </select>
+                </td>
+                <td>
+                    <input name="Specifications[0].Value" class="form-control" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <button type="button" class="btn btn-secondary" onclick="addRow()">+ Thêm dòng</button>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+</form>
+
+<script>
+    let rowIndex = 1;
+
+    function addRow() {
+        const table = document.getElementById('specTable');
+        const newRow = document.createElement('tr');
+
+        newRow.innerHTML = `
+            <td>
+                <select name="Specifications[${rowIndex}].SpecificationAttributeId" class="form-control">
+                    ${Array.from(document.querySelector('select').options).map(o =>
+                        `<option value="${o.value}">${o.text}</option>`).join('')}
+                </select>
+            </td>
+            <td>
+                <input name="Specifications[${rowIndex}].Value" class="form-control" />
+            </td>
+        `;
+
+        table.appendChild(newRow);
+        rowIndex++;
+    }
+</script>

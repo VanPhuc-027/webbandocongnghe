@@ -1,0 +1,46 @@
+﻿@using _2280613193_webdocongnghe.Models
+@model List<Order>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Quản lý đơn hàng</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Ngày đặt</th>
+            <th>Trạng thái</th>
+            <th>Tổng tiền</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>#@o.Id</td>
+                <td>@o.ApplicationUser.FullName</td>
+                <td>@o.OrderDate.ToString("dd/MM/yyyy")</td>
+                <td>@o.Status</td>
+                <td>@o.TotalPrice.ToString("N0") ₫</td>
+                <td>
+                    <form asp-action="UpdateStatus" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@o.Id" />
+                        <select name="status" class="form-control d-inline w-auto">
+                            <option value="Chờ xác nhận" selected="@("Chờ xác nhận" == o.Status)">Chờ xác nhận</option>
+                            <option value="Đã xác nhận" selected="@("Đã xác nhận" == o.Status)">Đã xác nhận</option>
+                            <option value="Đã huỷ" selected="@("Đã huỷ" == o.Status)">Đã huỷ</option>
+                            <option value="Đã giao" selected="@("Đã giao" == o.Status)">Đã giao</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

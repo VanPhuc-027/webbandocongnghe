@@ -1,0 +1,123 @@
+﻿@model _2280613193_webdocongnghe.Models.ProductCreateViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+	ViewData["Title"] = "Thêm sản phẩm";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">🆕 Thêm sản phẩm mới</h2>
+
+<form asp-area="Admin" asp-controller="Product" asp-action="Add" method="post" enctype="multipart/form-data">
+	<div class="row">
+		<!-- Cột trái: Thông tin cơ bản -->
+		<div class="col-md-6">
+			<div class="card mb-4 shadow-sm">
+				<div class="card-header bg-primary text-white">
+					Thông tin cơ bản
+				</div>
+				<div class="card-body">
+					<div class="form-group mb-3">
+						<label asp-for="Name">Tên sản phẩm</label>
+						<input asp-for="Name" class="form-control" />
+						<span asp-validation-for="Name" class="text-danger"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Price">Giá bán (Vn₫)</label>
+						<input asp-for="Price" class="form-control" />
+						<span asp-validation-for="Price" class="text-danger"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="Description">Mô tả chi tiết</label>
+						<textarea asp-for="Description" class="form-control" rows="4"></textarea>
+						<span asp-validation-for="Description" class="text-danger"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="CategoryId">Danh mục</label>
+						<select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select" id="CategoryId">
+							<option value="">-- Chọn danh mục --</option>
+						</select>
+						<span asp-validation-for="CategoryId" class="text-danger"></span>
+					</div>
+
+					<div class="form-group mb-3">
+						<label asp-for="BrandId">Hãng sản xuất</label>
+						<select asp-for="BrandId" asp-items="ViewBag.Brands" class="form-select">
+							<option value="">-- Chọn hãng --</option>
+						</select>
+						<span asp-validation-for="BrandId" class="text-danger"></span>
+					</div>
+				</div>
+			</div>
+
+			<div class="card mb-4 shadow-sm">
+				<div class="card-header bg-secondary text-white">
+					Hình ảnh sản phẩm
+				</div>
+				<div class="card-body">
+					<div class="form-group">
+						<input type="file" asp-for="ImageFile" class="form-control" />
+						<span asp-validation-for="ImageFile" class="text-danger"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Cột phải: Thông số kỹ thuật -->
+		<div class="col-md-6">
+			<div class="card shadow-sm mb-4">
+				<div class="card-header bg-info text-white">
+					Thông số kỹ thuật theo danh mục
+				</div>
+				<div class="card-body" id="specifications-container">
+					<p class="text-muted">Chọn danh mục để hiển thị thông số kỹ thuật.</p>
+				</div>
+			</div>
+
+			<div class="d-grid">
+				<button type="submit" class="btn btn-success btn-lg shadow">
+					<i class="bi bi-plus-circle"></i> Thêm sản phẩm
+				</button>
+			</div>
+			<div class="mt-4 text-center">
+				<a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+			</div>
+		</div>
+	</div>
+</form>
+
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			$('#CategoryId').on('change', function () {
+				var categoryId = $(this).val();
+				$('#specifications-container').empty();
+
+				if (!categoryId) return;
+
+				$.get('/Admin/Product/GetSpecificationsByCategory', { categoryId: categoryId }, function (data) {
+					if (data.length === 0) {
+						$('#specifications-container').append('<p class="text-muted">Không có thông số kỹ thuật cho danh mục này.</p>');
+						return;
+					}
+					data.forEach(function (spec, index) {
+						var html = `
+									<div class="form-group mb-3">
+										<label class="fw-bold">${spec.name}</label>
+										<input type="text" class="form-control" name="Specifications[${index}].Value" />
+										<input type="hidden" name="Specifications[${index}].SpecificationAttributeId" value="${spec.id}" />
+									</div>`;
+						$('#specifications-container').append(html);
+					});
+				});
+			});
+		});
+	</script>
+}

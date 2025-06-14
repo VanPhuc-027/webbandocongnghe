@@ -1,0 +1,95 @@
+﻿@model _2280613193_webdocongnghe.Models.Product
+@{
+    ViewData["Title"] = "Chi tiết sản phẩm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int numOfQuantity = 1; 
+}
+<h2 class="mb-4 text-center text-primary">Chi tiết sản phẩm</h2>
+
+<div class="card shadow-lg mx-auto" style="max-width: 900px;">
+    <div class="row g-0">
+        <div class="col-md-5 d-flex align-items-center justify-content-center p-3">
+            <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Name" style="max-height: 280px;" />
+        </div>
+        <div class="col-md-7">
+            <div class="card-body">
+                <h4 class="card-title mb-2"><strong>@Model.Name</strong></h4>
+                <h5 class="text-success mb-3">@Model.Price.ToString("#,##0 Vnđ")</h5>
+
+                <p><strong>Danh mục:</strong> @(Model.Category?.Name ?? "Không có")</p>
+                <p><strong>Hãng:</strong> @(Model.Brand?.Name ?? "Không có")</p>
+
+                <div class="mb-3">
+                    <strong>Mô tả:</strong>
+                    <div class="text-muted">@Model.Description</div>
+                </div>
+
+                @if (Model.Specifications != null && Model.Specifications.Any())
+                {
+                    <div class="mt-3">
+                        <h6><strong>Thông số kỹ thuật</strong></h6>
+                        <table class="table table-bordered table-sm mt-2">
+                            <tbody>
+                                @foreach (var spec in Model.Specifications)
+                                {
+                                    <tr>
+                                        <td class="w-50">@spec.SpecificationAttribute?.Name</td>
+                                        <td class="text-end fw-bold">@spec.Value</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 text-center">
+    <button class="btn btn-dark add-to-cart-btn"
+            data-product-id="@Model.Id"
+            data-quantity="@numOfQuantity">
+        <i class="bi bi-cart-fill me-1"></i> Thêm vào Giỏ
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</div>
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const productId = this.getAttribute('data-product-id');
+                    let quantityInput = document.querySelector(`#quantity-${productId}`);
+                    let quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    fetch('/ShoppingCart/AddToCart', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify({ productId: parseInt(productId), quantity: quantity })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const cartBadge = document.querySelector('#cart-count');
+                                if (cartBadge) {
+                                    cartBadge.textContent = data.cartCount;
+                                    cartBadge.style.display = 'inline';
+                                }
+                                alert('Đã thêm sản phẩm vào giỏ hàng!');
+                            } else {
+                                alert('Lỗi: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            alert('Đã xảy ra lỗi khi thêm vào giỏ hàng: ' + error.message);
+                        });
+                });
+            });
+        });
+    </script>
+}

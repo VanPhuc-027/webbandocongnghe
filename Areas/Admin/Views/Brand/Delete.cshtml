@@ -1,0 +1,30 @@
+﻿@model _2280613193_webdocongnghe.Models.Brand
+
+@{
+    ViewData["Title"] = "Xoá hãng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg">
+        <div class="card-header bg-danger text-white">
+            <h4 class="mb-0">Xác nhận xoá hãng</h4>
+        </div>
+        <div class="card-body">
+            <p class="lead">Bạn có chắc chắn muốn xoá hãng dưới đây không? Thao tác này không thể hoàn tác.</p>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-3">Tên hãng:</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
+            </dl>
+
+            <form asp-action="DeleteConfirmed" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
+                    <button type="submit" class="btn btn-danger">Xác nhận xoá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
