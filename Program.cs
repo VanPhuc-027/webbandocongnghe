@@ -1,4 +1,5 @@
-﻿using _2280613193_webdocongnghe.Models;
+﻿using _2280613193_webdocongnghe.Midleware;
+using _2280613193_webdocongnghe.Models;
 using _2280613193_webdocongnghe.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -87,6 +88,7 @@ app.UseSession();
 
 app.UseRouting();
 app.UseAuthentication();
+app.UseCheckAccountStatus();
 app.UseAuthorization();
 
 
