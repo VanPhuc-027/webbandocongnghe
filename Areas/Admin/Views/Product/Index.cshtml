@@ -1,5 +1,6 @@
-﻿@model IEnumerable<_2280613193_webdocongnghe.Models.Product>
-
+﻿
+@model X.PagedList.IPagedList<_2280613193_webdocongnghe.Models.Product>
+@using X.PagedList.Mvc.Core
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -45,3 +46,12 @@
         </div>
     </div>
 </section>
+<div class="container mt-4 d-flex justify-content-center">
+    @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
+            new PagedListRenderOptions
+    {
+        UlElementClasses = new[] { "pagination" },
+        LiElementClasses = new[] { "page-item" },
+        PageClasses = new[] { "page-link" }
+    })
+</div>

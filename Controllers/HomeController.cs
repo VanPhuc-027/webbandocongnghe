@@ -3,6 +3,7 @@ using _2280613193_webdocongnghe.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using X.PagedList;
 
 namespace _2280613193_webdocongnghe.Controllers
 {
@@ -20,7 +21,7 @@ namespace _2280613193_webdocongnghe.Controllers
             _context = context;
         }
 
-        public IActionResult Index(string search, string priceFilter, string category, string brand)
+        public IActionResult Index(string search, string priceFilter, string category, string brand, int? page)
         {
             var products = _context.Products.Include(p => p.Category).Include(p => p.Brand).AsQueryable();
 
@@ -63,7 +64,11 @@ namespace _2280613193_webdocongnghe.Controllers
             ViewBag.SelectedCategory = category;
             ViewBag.SelectedBrand = brand;
 
-            return View(products.ToList());
+            int pageSize = 2;
+            int pageNumber = page ?? 1;
+            var pagedProducts = products.ToPagedList(pageNumber, pageSize);
+
+            return View(pagedProducts);
         }
 
         public async Task<IActionResult> Display(int id)

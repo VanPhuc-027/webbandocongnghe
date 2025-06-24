@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using X.PagedList;
 
 namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
 {
@@ -25,10 +26,13 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int?page)
         {
+            int pageSize = 2; // số sản phẩm mỗi trang
+            int pageNumber = page ?? 1;
             var products = await _productRepository.GetAllAsync();
-            return View(products);
+            var pagedProducts = products.ToPagedList(pageNumber, pageSize);
+            return View(pagedProducts);
         }
 		[HttpGet]
 		public IActionResult Import()
