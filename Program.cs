@@ -1,6 +1,7 @@
-﻿using _2280613193_webdocongnghe.Midleware;
+using _2280613193_webdocongnghe.Midleware;
 using _2280613193_webdocongnghe.Models;
 using _2280613193_webdocongnghe.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAuthentication(options =>
+{
+	options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+	options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+	options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie()
+.AddGoogle(options =>
+{
+	options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+	options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+});
+
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -17,6 +32,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 	options.Password.RequireUppercase = false;
 	options.Password.RequiredLength = 3;
 });
+
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 .AddDefaultTokenProviders()
@@ -55,8 +71,12 @@ using (var scope = app.Services.CreateScope())
 	var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 	var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-	// Tạo tài khoản demo nếu chưa có
-	var Admin = await userManager.FindByEmailAsync("admin@tech.com");
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+    // Tạo tài khoản demo nếu chưa có
+    var Admin = await userManager.FindByEmailAsync("admin@tech.com");
 	if (Admin == null)
 	{
 		var user = new ApplicationUser

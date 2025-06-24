@@ -141,44 +141,54 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             var brands = await _brandRepository.GetAllAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name",product.CategoryId);
             ViewBag.Brands = new SelectList(brands, "Id", "Name", product.BrandId);
+            product.Specifications = product.Specifications ?? new List<ProductSpecification>();
             return View(product);
         }
         [HttpPost]
-        public async Task<IActionResult> Update(int id, Product product,IFormFile imageUrl)
+        public async Task<IActionResult> Update(ProductUpdateViewModel model)
         {
-            ModelState.Remove("ImageUrl"); 
-            if (id != product.Id)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                var categories = await _categoryRepository.GetAllAsync();
+                var brands = await _brandRepository.GetAllAsync();
+                ViewBag.Categories = new SelectList(categories, "Id", "Name", model.CategoryId);
+                ViewBag.Brands = new SelectList(brands, "Id", "Name", model.BrandId);
+                return View(model);
             }
-            if (ModelState.IsValid)
-            {
-                var existingProduct = await
-                _productRepository.GetByIdAsync(id);
-                if (imageUrl == null)
-                {
-                    product.ImageUrl = existingProduct.ImageUrl;
-                }
-                else
-                {
-                    product.ImageUrl = await SaveImage(imageUrl);
 
-                }
-                existingProduct.Name = product.Name;
-                existingProduct.Price = product.Price;
-                existingProduct.Description = product.Description;
-                existingProduct.CategoryId = product.CategoryId;
-                existingProduct.BrandId = product.BrandId;
-                existingProduct.ImageUrl = product.ImageUrl;
-                await _productRepository.UpdateAsync(existingProduct);
-                return RedirectToAction(nameof(Index));
+            var product = await _context.Products
+                .Include(p => p.Specifications)
+                .FirstOrDefaultAsync(p => p.Id == model.Id);
+
+            if (product == null) return NotFound();
+
+            product.Name = model.Name;
+            product.Price = model.Price;
+            product.Description = model.Description;
+            product.CategoryId = model.CategoryId;
+            product.BrandId = model.BrandId;
+
+            if (model.ImageFile != null)
+            {
+                product.ImageUrl = await SaveImage(model.ImageFile);
             }
-            var categories = await _categoryRepository.GetAllAsync();
-            var brands = await _brandRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
-            ViewBag.Brands = new SelectList(brands, "Id", "Name");
-            return View(product);
+
+            _context.ProductSpecifications.RemoveRange(product.Specifications);
+
+            foreach (var spec in model.Specifications)
+            {
+                _context.ProductSpecifications.Add(new ProductSpecification
+                {
+                    ProductId = model.Id,
+                    SpecificationAttributeId = spec.SpecificationAttributeId,
+                    Value = spec.Value
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Delete(int id)
         {

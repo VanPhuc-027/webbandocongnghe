@@ -9,7 +9,7 @@
             <th>Ngày đặt</th>
             <th>Tổng tiền</th>
             <th>Trạng thái</th>
-            <th>Chi tiết</th>
+            <th>Hành động</th>
         </tr>
     </thead>
     <tbody>
@@ -22,6 +22,24 @@
                 <td>@o.Status</td>
                 <td>
                     <a asp-controller="ShoppingCart" asp-action="OrderDetail" asp-route-id="@o.Id" class="btn btn-sm btn-outline-info">Xem</a>
+
+                    @if (o.Status == "Chờ xác nhận" || o.Status == "Đã xác nhận")
+                    {
+                        <form asp-action="CancelOrder" asp-controller="ShoppingCart" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="@o.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc muốn hủy đơn hàng này không?')">Hủy</button>
+                        </form>
+                    }
+                    @if (o.Status == "Đã giao")
+                    {
+                        <form asp-action="RequestReturn" asp-route-id="@o.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-warning"
+                                    onclick="return confirm('Xác nhận gửi yêu cầu đổi trả đơn hàng này?');">
+                                Yêu cầu đổi trả
+                            </button>
+                        </form>
+                    }
                 </td>
             </tr>
         }

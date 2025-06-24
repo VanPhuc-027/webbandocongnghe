@@ -1,4 +1,5 @@
-﻿using _2280613193_webdocongnghe.Models;
+﻿using _2280613193_webdocongnghe.Helpers;
+using _2280613193_webdocongnghe.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +32,20 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             var order = await _context.Orders.FindAsync(id);
             if (order == null) return NotFound();
 
+            string currentStatus = order.Status;
+
+            // Kiểm tra trạng thái hợp lệ
+            if (!OrderStatusFlow.ValidTransitions.ContainsKey(currentStatus))
+                return BadRequest("Trạng thái hiện tại không hợp lệ.");
+
+            var allowedNextStatuses = OrderStatusFlow.ValidTransitions[currentStatus];
+
+            if (!allowedNextStatuses.Contains(status))
+                return BadRequest($"Không thể chuyển từ '{currentStatus}' sang '{status}'.");
+
             order.Status = status;
             await _context.SaveChangesAsync();
+
             return RedirectToAction("Index");
         }
     }

@@ -22,7 +22,7 @@ namespace _2280613193_webdocongnghe.Models
 
         public string? ImageUrl { get; set; }
 
-        public List<ProductSpecificationViewModel> Specifications { get; set; } = new();
+        public List<SpecificationInputModel> Specifications { get; set; } = new();
     }
 
 }

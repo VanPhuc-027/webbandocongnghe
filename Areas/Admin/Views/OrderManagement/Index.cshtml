@@ -1,45 +1,73 @@
-﻿@using _2280613193_webdocongnghe.Models
+﻿@using _2280613193_webdocongnghe.Helpers
+@using _2280613193_webdocongnghe.Models
 @model List<Order>
 
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<h2>Quản lý đơn hàng</h2>
-
-<table class="table table-bordered">
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Chờ xác nhận" => "bg-warning text-dark",
+            "Đã xác nhận" => "bg-info text-white",
+            "Đang giao" => "bg-primary",
+            "Đã giao" => "bg-success",
+            "Đã hủy" => "bg-danger",
+            "Trả lại hàng" => "bg-secondary",
+            _ => "bg-light text-dark"
+        };
+    }
+}
+<table class="table">
     <thead>
         <tr>
-            <th>ID</th>
+            <th>Mã đơn</th>
             <th>Khách hàng</th>
             <th>Ngày đặt</th>
             <th>Trạng thái</th>
-            <th>Tổng tiền</th>
-            <th>Thao tác</th>
+            <th>Cập nhật trạng thái</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var o in Model)
+        @foreach (var order in Model)
         {
+            var allowedStatuses = OrderStatusFlow.ValidTransitions.ContainsKey(order.Status)
+            ? OrderStatusFlow.ValidTransitions[order.Status]
+            : new List<string>();
+
             <tr>
-                <td>#@o.Id</td>
-                <td>@o.ApplicationUser.FullName</td>
-                <td>@o.OrderDate.ToString("dd/MM/yyyy")</td>
-                <td>@o.Status</td>
-                <td>@o.TotalPrice.ToString("N0") ₫</td>
+                <td>@order.Id</td>
+                <td>@order.ApplicationUser.FullName</td>
+                <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                <td>@order.Status</td>
                 <td>
-                    <form asp-action="UpdateStatus" method="post" class="d-inline">
-                        <input type="hidden" name="id" value="@o.Id" />
-                        <select name="status" class="form-control d-inline w-auto">
-                            <option value="Chờ xác nhận" selected="@("Chờ xác nhận" == o.Status)">Chờ xác nhận</option>
-                            <option value="Đã xác nhận" selected="@("Đã xác nhận" == o.Status)">Đã xác nhận</option>
-                            <option value="Đã huỷ" selected="@("Đã huỷ" == o.Status)">Đã huỷ</option>
-                            <option value="Đã giao" selected="@("Đã giao" == o.Status)">Đã giao</option>
-                        </select>
-                        <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
-                    </form>
+                    @if (allowedStatuses.Any())
+                    {
+                        <form asp-action="UpdateStatus" method="post">
+                            <input type="hidden" name="id" value="@order.Id" />
+                            <div class="mb-1">
+                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                    Trạng thái hiện tại: @order.Status
+                                </span>
+                            </div>
+                            <select name="status" class="form-select form-select-sm">
+                                @foreach (var status in allowedStatuses)
+                                {
+                                    <option value="@status">@status</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary mt-1">Cập nhật</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Không thể cập nhật</span>
+                    }
                 </td>
+
             </tr>
         }
     </tbody>

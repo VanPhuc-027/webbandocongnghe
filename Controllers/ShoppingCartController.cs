@@ -267,5 +267,66 @@ namespace _2280613193_webdocongnghe.Controllers
         {
             HttpContext.Session.SetObjectAsJson("Cart", cart);
         }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (order.UserId != user.Id)
+                return Forbid(); // Không được huỷ đơn người khác
+
+            if (order.Status != "Chờ xác nhận" && order.Status != "Đã xác nhận")
+            {
+                TempData["Error"] = "Chỉ có thể huỷ đơn hàng chưa giao.";
+                return RedirectToAction("MyOrders");
+            }
+
+            order.Status = "Đã hủy";
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Đơn hàng đã được huỷ.";
+            return RedirectToAction("MyOrders");
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestReturn(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if (order == null)
+                return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (order.UserId != user.Id)
+                return Forbid(); // Không phải đơn của người dùng
+
+            if (order.Status != "Đã giao")
+            {
+                TempData["Error"] = "Chỉ có thể yêu cầu đổi trả khi đơn hàng đã giao.";
+                return RedirectToAction("MyOrders");
+            }
+
+            // Kiểm tra tránh yêu cầu trùng
+            if (order.Status == "Trả lại hàng")
+            {
+                TempData["Error"] = "Đơn hàng này đã được yêu cầu đổi trả.";
+                return RedirectToAction("MyOrders");
+            }
+
+            order.Status = "Trả lại hàng";
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Đã gửi yêu cầu đổi trả.";
+            return RedirectToAction("MyOrders");
+        }
+
+
     }
 }
