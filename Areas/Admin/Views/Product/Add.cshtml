@@ -7,7 +7,9 @@
 }
 
 <h2 class="mb-4">🆕 Thêm sản phẩm mới</h2>
-
+<a asp-action="Import" asp-controller="Product" asp-area="Admin" class="btn btn-outline-primary">
+	Import Excel
+</a>
 <form asp-area="Admin" asp-controller="Product" asp-action="Add" method="post" enctype="multipart/form-data">
 	<div class="row">
 		<!-- Cột trái: Thông tin cơ bản -->
@@ -81,6 +83,7 @@
 				<button type="submit" class="btn btn-success btn-lg shadow">
 					<i class="bi bi-plus-circle"></i> Thêm sản phẩm
 				</button>
+
 			</div>
 			<div class="mt-4 text-center">
 				<a asp-action="Index" class="btn btn-secondary">Quay lại</a>

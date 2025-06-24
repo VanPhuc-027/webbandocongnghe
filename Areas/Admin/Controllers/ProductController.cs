@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
 
 namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
 {
@@ -29,8 +30,14 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             var products = await _productRepository.GetAllAsync();
             return View(products);
         }
+		[HttpGet]
+		public IActionResult Import()
+		{
+			return View();
+		}
 
-        [HttpGet]
+
+		[HttpGet]
         public async Task<IActionResult> GetSpecificationsByCategory(int categoryId)
         {
             var specAttributes = await _context.CategorySpecificationAttributes
@@ -206,6 +213,72 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             await _productRepository.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn file Excel hợp lệ.";
+                return RedirectToAction("Import");
+            }
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            var productList = new List<Product>();
+
+            using (var stream = new MemoryStream())
+            {
+                await file.CopyToAsync(stream);
+                using (var package = new ExcelPackage(stream))
+                {
+                    ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    int rowCount = worksheet.Dimension.Rows;
+
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        try
+                        {
+                            var name = worksheet.Cells[row, 1].Text?.Trim();
+                            var priceText = worksheet.Cells[row, 2].Text?.Trim();
+                            var desc = worksheet.Cells[row, 3].Text?.Trim();
+                            var imageUrl = worksheet.Cells[row, 4].Text?.Trim();
+                            var catIdText = worksheet.Cells[row, 5].Text?.Trim();
+                            var brandIdText = worksheet.Cells[row, 6].Text?.Trim();
+
+                            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(priceText))
+                                continue; // bỏ dòng trống hoặc thiếu dữ liệu
+
+                            var product = new Product
+                            {
+                                Name = name,
+                                Price = decimal.Parse(priceText),
+                                Description = desc,
+                                ImageUrl = imageUrl,
+                                CategoryId = string.IsNullOrEmpty(catIdText) ? null : int.Parse(catIdText),
+                                BrandId = string.IsNullOrEmpty(brandIdText) ? null : int.Parse(brandIdText),
+                            };
+
+                            productList.Add(product);
+                        }
+                        catch (Exception ex)
+                        {
+                            TempData["Error"] = $"Lỗi ở dòng {row}: {ex.Message}";
+                            return RedirectToAction("Import");
+                        }
+                    }
+                }
+            }
+
+            _context.Products.AddRange(productList);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã nhập thành công {productList.Count} sản phẩm.";
+            return RedirectToAction("Import");
+        }
+
 
     }
 }
