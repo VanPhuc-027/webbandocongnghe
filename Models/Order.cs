@@ -12,7 +12,8 @@ namespace _2280613193_webdocongnghe.Models
         public string ShippingAddress { get; set; }
         public string Notes { get; set; }
         public string Status { get; set; } 
-        public string PaymentMethod { get; set; } 
+        public string PaymentMethod { get; set; }
+        public string? ReturnReason { get; set; }
         [ForeignKey("UserId")]
         [ValidateNever]
         public ApplicationUser ApplicationUser { get; set; }

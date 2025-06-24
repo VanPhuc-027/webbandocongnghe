@@ -34,6 +34,7 @@
                     {
                         <form asp-action="RequestReturn" asp-route-id="@o.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
+                            <input type="text" name="reason" placeholder="Lý do đổi trả" required class="form-control form-control-sm mb-1" />
                             <button type="submit" class="btn btn-sm btn-warning"
                                     onclick="return confirm('Xác nhận gửi yêu cầu đổi trả đơn hàng này?');">
                                 Yêu cầu đổi trả

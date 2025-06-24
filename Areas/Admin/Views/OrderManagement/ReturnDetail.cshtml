@@ -1,0 +1,68 @@
+﻿@using _2280613193_webdocongnghe.Models
+@model Order
+
+@{
+    ViewData["Title"] = "Chi tiết yêu cầu đổi trả";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Chi tiết yêu cầu đổi trả</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Mã đơn:</strong> #@Model.Id</p>
+                    <p><strong>Khách hàng:</strong> @Model.ApplicationUser.FullName</p>
+                    <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy")</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0") Vn₫</p>
+                    <p><strong>Lý do đổi trả:</strong></p>
+                    <div class="border rounded p-2 bg-light">@Model.ReturnReason</div>
+                </div>
+            </div>
+
+            <h5 class="mt-4">📦 Sản phẩm trong đơn</h5>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover mt-2">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Tên sản phẩm</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Giá</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderDetails)
+                        {
+                            <tr>
+                                <td>@item.Product.Name</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end">@item.Price.ToString("N0") Vn₫</td>
+                                <td class="text-end">@((item.Price * item.Quantity).ToString("N0")) Vn₫</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <form asp-action="ProcessReturn" method="post" class="mt-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <div class="d-flex gap-2">
+                    <button type="submit" name="decision" value="accept" class="btn btn-success">
+                        ✅ Chấp nhận đổi trả
+                    </button>
+                    <button type="submit" name="decision" value="reject" class="btn btn-danger">
+                        ❌ Từ chối đổi trả
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">↩️ Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

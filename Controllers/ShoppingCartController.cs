@@ -297,7 +297,7 @@ namespace _2280613193_webdocongnghe.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RequestReturn(int id)
+        public async Task<IActionResult> RequestReturn(int id, string reason)
         {
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
@@ -305,7 +305,7 @@ namespace _2280613193_webdocongnghe.Controllers
 
             var user = await _userManager.GetUserAsync(User);
             if (order.UserId != user.Id)
-                return Forbid(); // Không phải đơn của người dùng
+                return Forbid();
 
             if (order.Status != "Đã giao")
             {
@@ -313,19 +313,14 @@ namespace _2280613193_webdocongnghe.Controllers
                 return RedirectToAction("MyOrders");
             }
 
-            // Kiểm tra tránh yêu cầu trùng
-            if (order.Status == "Trả lại hàng")
-            {
-                TempData["Error"] = "Đơn hàng này đã được yêu cầu đổi trả.";
-                return RedirectToAction("MyOrders");
-            }
-
             order.Status = "Trả lại hàng";
+            order.ReturnReason = reason;
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Đã gửi yêu cầu đổi trả.";
             return RedirectToAction("MyOrders");
         }
+
 
 
     }

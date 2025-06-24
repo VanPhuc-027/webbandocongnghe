@@ -29,6 +29,7 @@
             <th>Ngày đặt</th>
             <th>Trạng thái</th>
             <th>Cập nhật trạng thái</th>
+            <th>Thao tác</th>
         </tr>
     </thead>
     <tbody>
@@ -42,24 +43,23 @@
                 <td>@order.Id</td>
                 <td>@order.ApplicationUser.FullName</td>
                 <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                <td>@order.Status</td>
+                <td>
+                    <span class="badge @GetStatusBadgeClass(order.Status)">
+                        @order.Status
+                    </span>
+                </td>
                 <td>
                     @if (allowedStatuses.Any())
                     {
                         <form asp-action="UpdateStatus" method="post">
                             <input type="hidden" name="id" value="@order.Id" />
-                            <div class="mb-1">
-                                <span class="badge @GetStatusBadgeClass(order.Status)">
-                                    Trạng thái hiện tại: @order.Status
-                                </span>
-                            </div>
-                            <select name="status" class="form-select form-select-sm">
+                            <select name="status" class="form-select form-select-sm mb-1">
                                 @foreach (var status in allowedStatuses)
                                 {
                                     <option value="@status">@status</option>
                                 }
                             </select>
-                            <button type="submit" class="btn btn-sm btn-primary mt-1">Cập nhật</button>
+                            <button type="submit" class="btn btn-sm btn-primary">Cập nhật</button>
                         </form>
                     }
                     else
@@ -67,8 +67,19 @@
                         <span class="text-muted">Không thể cập nhật</span>
                     }
                 </td>
+                <td>
+                    <a asp-action="OrderDetail" asp-controller="OrderManagement" asp-route-id="@order.Id"
+                       class="btn btn-sm btn-outline-secondary mb-1">Chi tiết</a>
 
+                    @if (order.Status == "Trả lại hàng")
+                    {
+                        <a asp-action="ReturnDetail" asp-route-id="@order.Id" class="btn btn-sm btn-outline-info">
+                            Trả hàng
+                        </a>
+                    }
+                </td>
             </tr>
         }
     </tbody>
+
 </table>
