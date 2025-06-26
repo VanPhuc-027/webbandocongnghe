@@ -130,19 +130,6 @@ namespace _2280613193_webdocongnghe.Areas.Identity.Pages.Account
 
                     if (result.Succeeded)
                     {
-                        var roles = await _userManager.GetRolesAsync(user);
-
-                        if (roles.Contains("Admin"))
-                        {
-                            var code = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
-
-                            await new MailtrapEmailSender().SendEmailAsync(user.Email, "Mã 2FA", $"Mã xác thực đăng nhập là: <strong>{code}</strong>");
-
-                            var adminReturnUrl = "/Admin/Product";
-                            return RedirectToPage("Verify2faByEmail", new { userId = user.Id, returnUrl = adminReturnUrl });
-
-                        }
-
                         // Nếu không phải Admin thì mới đăng nhập luôn
                         await _signInManager.SignInAsync(user, isPersistent: Input.RememberMe);
                         return LocalRedirect(returnUrl);

@@ -13,7 +13,7 @@
         </div>
         <form method="get" asp-action="Index" class="row g-3 mb-5 justify-content-center">
             <div class="col-md-4">
-                <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
+                <input type="text" id="searchInput" name="search" value="@ViewBag.Search" class="form-control" placeholder="Tìm kiếm sản phẩm..." />
             </div>
             <div class="col-md-3">
                 <select name="priceFilter" class="form-select">
@@ -110,6 +110,46 @@
 
 @section Scripts {
 <script>
+    $(document).ready(function () {
+        $("#searchInput").autocomplete({
+            minLength: 0,
+            source: function (request, response) {
+                $.ajax({
+                    url: '@Url.Action("SearchSuggestions", "Home")',
+                    type: "GET",
+                    dataType: "json",
+                    data: { term: request.term || "" },
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            response(data);
+                        } else {
+                            response([]);
+                        }
+                    },
+                    error: function () {
+                        response([]);
+                    }
+                });
+            },
+            select: function (event, ui) {
+                if (ui.item && ui.item.value) {
+                    $("#searchInput").val(ui.item.label);
+                    $("form").submit();
+                }
+            }
+        }).on("focus click", function () {
+            $(this).autocomplete("search", $(this).val() || "");
+        }).autocomplete("instance")._renderItem = function (ul, item) {
+            return $("<li>").append("<div>" + item.label + "</div>").appendTo(ul);
+        };
+
+        $("#searchInput").on("focus", function () {
+            if ($(this).val() === "") {
+                $(this).autocomplete("search", "");
+            }
+        });
+    });
+
     document.querySelectorAll('.add-to-cart-btn').forEach(button => {
         button.addEventListener('click', function () {
             const productId = this.getAttribute('data-product-id');

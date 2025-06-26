@@ -98,5 +98,31 @@ namespace _2280613193_webdocongnghe.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+        [HttpGet]
+        public async Task<IActionResult> SearchSuggestions(string term)
+        {
+            term = term?.Trim().ToLower() ?? "";
+
+            var keywords = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            var query = _context.Products.AsQueryable();
+
+            foreach (var keyword in keywords)
+            {
+                var k = keyword;
+                query = query.Where(p => EF.Functions.Like(p.Name.ToLower(), $"%{k}%"));
+            }
+
+            var suggestions = await query
+                .Select(p => new
+                {
+                    label = p.Name,
+                    value = p.Name
+                })
+                .Take(10)
+                .ToListAsync();
+
+            return Json(suggestions);
+        }
     }
 }
