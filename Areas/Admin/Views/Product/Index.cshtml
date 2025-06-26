@@ -1,6 +1,6 @@
-﻿
-@model X.PagedList.IPagedList<_2280613193_webdocongnghe.Models.Product>
+﻿@model X.PagedList.IPagedList<_2280613193_webdocongnghe.Models.Product>
 @using X.PagedList.Mvc.Core
+@using _2280613193_webdocongnghe.Models
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -9,7 +9,6 @@
 <a class="btn btn-success mb-4" asp-action="Add">+ Thêm sản phẩm</a>
 <section class="py-5 bg-light">
     <div class="container px-4 px-lg-5">
-        
         <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-3 justify-content-center">
             @foreach (var item in Model)
             {
@@ -18,7 +17,7 @@
                         <div class="position-relative">
                             <img src="@item.ImageUrl" class="card-img-top object-fit-cover" alt="@item.Name" style="height: 250px;">
                             <div class="position-absolute top-0 end-0 p-2">
-                                <span class="badge bg-primary">Mới</span>
+                                <span class="badge bg-primary">@(item.IsHidden ? "Ẩn" : "Hiển thị")</span>
                             </div>
                         </div>
                         <div class="card-body text-center d-flex flex-column">
@@ -35,9 +34,15 @@
                                 <a asp-action="Update" asp-route-id="@item.Id" class="btn btn-warning btn-sm px-4">
                                     <i class="bi bi-pencil-square"></i> Sửa
                                 </a>
-                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-warning btn-sm px-4">
-                                    <i class="bi bi-pencil-square"></i> Xóa
-                                </a>
+                                @if (User.IsInRole(SD.Role_Admin))
+                                {
+                                    <form asp-action="ToggleHide" method="post" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-sm @(item.IsHidden ? "btn-success" : "btn-danger") px-4">
+                                            @(item.IsHidden ? "Hiện" : "Ẩn")
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         </div>
                     </div>
@@ -48,7 +53,7 @@
 </section>
 <div class="container mt-4 d-flex justify-content-center">
     @Html.PagedListPager(Model, page => Url.Action("Index", new { page }),
-            new PagedListRenderOptions
+    new PagedListRenderOptions
     {
         UlElementClasses = new[] { "pagination" },
         LiElementClasses = new[] { "page-item" },

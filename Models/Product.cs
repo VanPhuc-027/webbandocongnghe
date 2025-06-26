@@ -18,6 +18,7 @@ namespace _2280613193_webdocongnghe.Models
         public Brand? Brand { get; set; }
 
         public List<ProductSpecification>? Specifications { get; set; }
+        public bool IsHidden { get; set; }
 
     }
 }

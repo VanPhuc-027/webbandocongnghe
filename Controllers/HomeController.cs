@@ -11,7 +11,6 @@ namespace _2280613193_webdocongnghe.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductRepository _productRepository;
-
         private readonly ApplicationDbContext _context;
 
         public HomeController(ILogger<HomeController> logger, IProductRepository productRepository, ApplicationDbContext context)
@@ -23,7 +22,11 @@ namespace _2280613193_webdocongnghe.Controllers
 
         public IActionResult Index(string search, string priceFilter, string category, string brand, int? page)
         {
-            var products = _context.Products.Include(p => p.Category).Include(p => p.Brand).AsQueryable();
+            var products = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Where(p => !p.IsHidden || User.IsInRole(SD.Role_Admin))
+                .AsQueryable();
 
             // Lọc theo tên
             if (!string.IsNullOrEmpty(search))
@@ -78,7 +81,7 @@ namespace _2280613193_webdocongnghe.Controllers
                 .Include(p => p.Brand)
                 .Include(p => p.Specifications)
                     .ThenInclude(ps => ps.SpecificationAttribute)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id && (!p.IsHidden || User.IsInRole(SD.Role_Admin)));
 
             if (product == null)
             {
@@ -98,6 +101,7 @@ namespace _2280613193_webdocongnghe.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
         [HttpGet]
         public async Task<IActionResult> SearchSuggestions(string term)
         {
@@ -105,7 +109,9 @@ namespace _2280613193_webdocongnghe.Controllers
 
             var keywords = term.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-            var query = _context.Products.AsQueryable();
+            var query = _context.Products
+                .Where(p => !p.IsHidden || User.IsInRole(SD.Role_Admin))
+                .AsQueryable();
 
             foreach (var keyword in keywords)
             {

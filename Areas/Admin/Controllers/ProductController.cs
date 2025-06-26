@@ -18,7 +18,7 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
         private readonly IBrandRepository _brandRepository;
         private readonly ApplicationDbContext _context;
 
-        public ProductController(IProductRepository productRepository,ICategoryRepository categoryRepository,IBrandRepository brandRepository,ApplicationDbContext context)
+        public ProductController(IProductRepository productRepository, ICategoryRepository categoryRepository, IBrandRepository brandRepository, ApplicationDbContext context)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
@@ -26,7 +26,7 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(int?page)
+        public async Task<IActionResult> Index(int? page)
         {
             int pageSize = 2; // số sản phẩm mỗi trang
             int pageNumber = page ?? 1;
@@ -34,14 +34,14 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             var pagedProducts = products.ToPagedList(pageNumber, pageSize);
             return View(pagedProducts);
         }
-		[HttpGet]
-		public IActionResult Import()
-		{
-			return View();
-		}
+        [HttpGet]
+        public IActionResult Import()
+        {
+            return View();
+        }
 
 
-		[HttpGet]
+        [HttpGet]
         public async Task<IActionResult> GetSpecificationsByCategory(int categoryId)
         {
             var specAttributes = await _context.CategorySpecificationAttributes
@@ -87,7 +87,8 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
                 Description = model.Description,
                 CategoryId = model.CategoryId,
                 BrandId = model.BrandId,
-                ImageUrl = ""
+                ImageUrl = "",
+                IsHidden = false
             };
 
             if (model.ImageFile != null)
@@ -124,24 +125,24 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             return "/images/" + image.FileName; // Trả về đường dẫn tương đối
         }
 
-		public async Task<IActionResult> Display(int id)
-		{
-			var product = await _context.Products
-				.Include(p => p.Category)
-				.Include(p => p.Brand)
-				.Include(p => p.Specifications)
-					.ThenInclude(ps => ps.SpecificationAttribute)
-				.FirstOrDefaultAsync(p => p.Id == id);
+        public async Task<IActionResult> Display(int id)
+        {
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Specifications)
+                    .ThenInclude(ps => ps.SpecificationAttribute)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-			if (product == null)
-			{
-				return NotFound();
-			}
+            if (product == null)
+            {
+                return NotFound();
+            }
 
-			return View(product);
-		}
+            return View(product);
+        }
 
-		public async Task<IActionResult> Update(int id)
+        public async Task<IActionResult> Update(int id)
         {
             var product = await _productRepository.GetByIdAsync(id);
             if (product == null)
@@ -150,7 +151,7 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             }
             var categories = await _categoryRepository.GetAllAsync();
             var brands = await _brandRepository.GetAllAsync();
-            ViewBag.Categories = new SelectList(categories, "Id", "Name",product.CategoryId);
+            ViewBag.Categories = new SelectList(categories, "Id", "Name", product.CategoryId);
             ViewBag.Brands = new SelectList(brands, "Id", "Name", product.BrandId);
             product.Specifications = product.Specifications ?? new List<ProductSpecification>();
             return View(product);
@@ -282,7 +283,23 @@ namespace _2280613193_webdocongnghe.Areas.Admin.Controllers
             TempData["Success"] = $"Đã nhập thành công {productList.Count} sản phẩm.";
             return RedirectToAction("Import");
         }
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleHide(int id)
+        {
+            var product = await _productRepository.GetByIdAsync(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
 
+            product.IsHidden = !product.IsHidden; // Đảo trạng thái ẩn/hiện
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã {(product.IsHidden ? "ẩn" : "hiện")} sản phẩm thành công.";
+            return RedirectToAction(nameof(Index));
+        }
 
     }
 }
